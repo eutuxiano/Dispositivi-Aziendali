@@ -1,0 +1,48 @@
+﻿@model DeviceManagerMVC.Models.Device
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h2 class="text-center mt-4">Conferma eliminazione</h2>
+
+<div class="d-flex justify-content-center mt-4">
+    <div class="card shadow p-4" style="width: 40rem;">
+
+        <dl class="row">
+            <dt class="col-sm-4 text-nowrap">Serial Number</dt>
+            <dd class="col-sm-8">@Model.SerialNumber</dd>
+
+            <dt class="col-sm-4 text-nowrap">Model</dt>
+            <dd class="col-sm-8">@Model.Model</dd>
+
+            <dt class="col-sm-4 text-nowrap">Assigned To</dt>
+            <dd class="col-sm-8">@Model.AssignedTo</dd>
+
+            <dt class="col-sm-4 text-nowrap">Purchase Date</dt>
+            <dd class="col-sm-8">@Model.PurchaseDate.ToShortDateString()</dd>
+
+            <dt class="col-sm-4 text-nowrap">Is Active</dt>
+            <dd class="col-sm-8">
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success">Attivo</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Non attivo</span>
+                }
+            </dd>
+        </dl>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a asp-action="Index" class="btn btn-secondary">Indietro</a>
+                <button type="submit" class="btn btn-danger">Elimina</button>
+            </div>
+        </form>
+
+    </div>
+</div>
