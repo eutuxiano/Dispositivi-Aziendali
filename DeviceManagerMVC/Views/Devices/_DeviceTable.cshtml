@@ -1,0 +1,46 @@
+﻿@model DeviceManagerMVC.Models.PagedResult<DeviceManagerMVC.Models.Device>
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Serial</th>
+            <th>Model</th>
+            <th>Assigned To</th>
+            <th>Purchase Date</th>
+            <th>Active</th>
+            <th>Azioni</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model.Items)
+        {
+            <tr>
+                <td>@d.SerialNumber</td>
+                <td>@d.Model</td>
+                <td>@d.AssignedTo</td>
+                <td>@d.PurchaseDate.ToString("yyyy-MM-dd")</td>
+                <td>@d.IsActive</td>
+                <td>
+                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@d.Id">Dettagli</a>
+                    <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@d.Id">Modifica</a>
+                    <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@d.Id">Elimina</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<!-- PAGINAZIONE -->
+<nav>
+    <ul class="pagination">
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.Page ? "active" : "")">
+                <a class="page-link" href="#" onclick="loadResults(@(i));">@i</a>
+            </li>
+        }
+    </ul>
+</nav>
+

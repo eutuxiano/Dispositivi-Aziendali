@@ -1,52 +1,55 @@
 ﻿@model IEnumerable<DeviceManagerMVC.Models.Device>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Devices";
 }
 
+<h2>Gestione Dispositivi</h2>
 
-<div class="d-flex justify-content-between mb-3">
-    <a class="btn btn-primary" asp-action="Create">+ Aggiungi dispositivo</a>
-    <a class="btn btn-success" asp-action="ExportCsv">Esporta CSV</a>
+<form id="searchForm" class="mb-3">
+    <div class="input-group">
+        <input type="text" id="searchInput" name="search" class="form-control" placeholder="Cerca in tutti i campi..." />
+        <button type="submit" class="btn btn-primary">Cerca</button>
+    </div>
+</form>
+
+<div class="mb-3">
+    <a class="btn btn-success" asp-action="Create">Crea nuovo dispositivo</a>
+    <a class="btn btn-secondary" asp-action="ImportCsv">Importa CSV</a>
+    <a class="btn btn-info" asp-action="ExportCsv">Esporta CSV</a>
 </div>
 
 
-<table class="table table-striped table-hover align-middle shadow-sm">
-    <thead class="table-dark">
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.SerialNumber)</th>
-            <th>@Html.DisplayNameFor(model => model.Model)</th>
-            <th>@Html.DisplayNameFor(model => model.AssignedTo)</th>
-            <th>@Html.DisplayNameFor(model => model.PurchaseDate)</th>
-            <th>@Html.DisplayNameFor(model => model.IsActive)</th>
-            <th class="text-end">Azioni</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.SerialNumber</td>
-                <td>@item.Model</td>
-                <td>@item.AssignedTo</td>
-                <td>@item.PurchaseDate.ToShortDateString()</td>
-                <td>
-                    @if (item.IsActive)
-                    {
-                        <span class="badge bg-success">Attivo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Non attivo</span>
-                    }
-                </td>
-                <td class="text-end">
-                    <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@item.Id">Modifica</a>
-                    <a class="btn btn-sm btn-info text-white" asp-action="Details" asp-route-id="@item.Id">Dettagli</a>
-                    <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">Elimina</a>
-                </td>
-            </tr>
+<div id="results">
+    <!-- Qui verrà caricata la tabella via AJAX -->
+</div>
+
+@section Scripts {
+    <script>
+        function loadResults(page = 1) {
+            const search = document.getElementById("searchInput").value;
+
+            $.ajax({
+                url: '/Devices/SearchAjax',
+                type: 'GET',
+                data: { search: search, page: page },
+                success: function (data) {
+                    $("#results").html(data);
+                }
+            });
         }
-    </tbody>
-</table>
+
+        // Submit del form
+        $("#searchForm").on("submit", function (e) {
+            e.preventDefault();
+            loadResults(1);
+        });
+
+        // Carica la prima pagina all'avvio
+        $(document).ready(function () {
+            loadResults(1);
+        });
+    </script>
+}
+
 

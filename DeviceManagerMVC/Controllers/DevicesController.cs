@@ -26,6 +26,45 @@ namespace DeviceManagerMVC.Controllers
             return View(await _context.Devices.ToListAsync());
         }
 
+        public async Task<IActionResult> SearchAjax(string search, int page = 1)
+        {
+            const int pageSize = 15;
+
+            var query = _context.Devices.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.ToLower();
+
+                query = query.Where(d =>
+                    d.SerialNumber.ToLower().Contains(search) ||
+                    d.Model.ToLower().Contains(search) ||
+                    d.AssignedTo.ToLower().Contains(search) ||
+                    d.PurchaseDate.ToString("yyyy-MM-dd").Contains(search) ||
+                    d.IsActive.ToString().ToLower().Contains(search)
+                );
+            }
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var items = await query
+                .OrderBy(d => d.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = new PagedResult<Device>
+            {
+                Items = items,
+                Page = page,
+                TotalPages = totalPages
+            };
+
+            return PartialView("_DeviceTable", result);
+        }
+
+
         // GET: Devices/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -50,6 +89,13 @@ namespace DeviceManagerMVC.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult ImportCsv()
+        {
+            return View();
+        }
+
+
         // POST: Devices/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -65,6 +111,93 @@ namespace DeviceManagerMVC.Controllers
             }
             return View(device);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ImportCsv(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["ImportErrors"] = "Nessun file selezionato.";
+                return RedirectToAction("Index");
+            }
+
+            var errors = new List<string>();
+            int lineNumber = 0;
+            int imported = 0;
+
+            using var reader = new StreamReader(file.OpenReadStream());
+
+            string? line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+
+                lineNumber++;
+
+                // Salta l'header
+                if (lineNumber == 1)
+                    continue;
+
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    errors.Add($"Riga {lineNumber}: vuota.");
+                    continue;
+                }
+
+                var values = line.Split(';');
+
+                if (values.Length < 5)
+                {
+                    errors.Add($"Riga {lineNumber}: numero di colonne errato ({values.Length}/5).");
+                    continue;
+                }
+
+                // Estrazione campi
+                string serial = values[0].Trim();
+                string model = values[1].Trim();
+                string assignedTo = values[2].Trim();
+                string purchaseDateString = values[3].Trim();
+                string isActiveString = values[4].Trim();
+
+                // Validazione
+                if (string.IsNullOrEmpty(serial))
+                    errors.Add($"Riga {lineNumber}: SerialNumber mancante.");
+
+                if (string.IsNullOrEmpty(model))
+                    errors.Add($"Riga {lineNumber}: Model mancante.");
+
+                if (!DateTime.TryParse(purchaseDateString, out DateTime purchaseDate))
+                    errors.Add($"Riga {lineNumber}: PurchaseDate non valida ({purchaseDateString}).");
+
+                if (!bool.TryParse(isActiveString, out bool isActive))
+                    errors.Add($"Riga {lineNumber}: IsActive deve essere true/false ({isActiveString}).");
+
+                // Se ci sono errori per questa riga → salta inserimento
+                if (errors.Any(e => e.Contains($"Riga {lineNumber}")))
+                    continue;
+
+                var device = new Device
+                {
+                    SerialNumber = serial,
+                    Model = model,
+                    AssignedTo = assignedTo,
+                    PurchaseDate = purchaseDate,
+                    IsActive = isActive
+                };
+
+                _context.Devices.Add(device);
+                imported++;
+            }
+
+            await _context.SaveChangesAsync();
+
+            if (errors.Count > 0)
+                TempData["ImportErrors"] = string.Join("<br/>", errors);
+
+            TempData["ImportSuccess"] = $"Importazione completata. Inseriti {imported} dispositivi.";
+
+            return RedirectToAction("Index");
+        }
+
 
         // GET: Devices/Edit/5
         public async Task<IActionResult> Edit(int? id)

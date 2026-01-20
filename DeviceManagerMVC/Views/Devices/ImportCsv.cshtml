@@ -1,0 +1,16 @@
+﻿@model DeviceManagerMVC.Models.Device
+@{
+    ViewData["Title"] = "Importa CSV";
+}
+
+<h2>Importa CSV</h2>
+
+<form asp-action="ImportCsv" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label class="form-label">Seleziona file CSV</label>
+        <input type="file" name="file" accept=".csv" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Carica e Importa</button>
+    <a asp-action="Index" class="btn btn-secondary">Annulla</a>
+</form>
