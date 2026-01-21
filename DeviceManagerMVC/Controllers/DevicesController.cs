@@ -28,6 +28,8 @@ namespace DeviceManagerMVC.Controllers
 
         public async Task<IActionResult> SearchAjax(string search, int page = 1)
         {
+            Console.WriteLine("SEARCH = [" + search + "]");
+
             const int pageSize = 15;
 
             var query = _context.Devices.AsQueryable();
@@ -40,7 +42,6 @@ namespace DeviceManagerMVC.Controllers
                     d.SerialNumber.ToLower().Contains(search) ||
                     d.Model.ToLower().Contains(search) ||
                     d.AssignedTo.ToLower().Contains(search) ||
-                    d.PurchaseDate.ToString("yyyy-MM-dd").Contains(search) ||
                     d.IsActive.ToString().ToLower().Contains(search)
                 );
             }

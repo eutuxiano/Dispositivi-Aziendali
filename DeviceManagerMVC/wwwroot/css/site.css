@@ -29,3 +29,62 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+.btn-primary {
+    background-color: #6C8EBF !important;
+    border-color: #6C8EBF !important;
+}
+
+.btn-success {
+    background-color: #7FB77E !important;
+    border-color: #7FB77E !important;
+}
+
+.btn-warning {
+    background-color: #E6B566 !important;
+    border-color: #E6B566 !important;
+    color: #000 !important;
+}
+
+.btn-danger {
+    background-color: #D97A7A !important;
+    border-color: #D97A7A !important;
+}
+
+.btn-info {
+    background-color: #D3D3D3 !important; /* grigio chiaro */
+    border-color: #D3D3D3 !important;
+    color: #000 !important; /* testo nero per leggibilità */
+}
+
+.pagination {
+    justify-content: center !important;
+}
+
+
+/* Link normali */
+.page-link {
+    color: #4A4A4A; /* grigio scuro elegante */
+    background-color: #F2F2F2; /* grigio chiarissimo */
+    border: 1px solid #D0D0D0;
+}
+
+    /* Hover */
+    .page-link:hover {
+        background-color: #E6E6E6;
+        color: #000;
+    }
+
+/* Pagina attiva */
+.page-item.active .page-link {
+    background-color: #6C8EBF; /* stesso blu tenue dei bottoni */
+    border-color: #6C8EBF;
+    color: #fff;
+}
+
+/* Disabilitato */
+.page-item.disabled .page-link {
+    background-color: #F7F7F7;
+    color: #A0A0A0;
+    border-color: #E0E0E0;
+}

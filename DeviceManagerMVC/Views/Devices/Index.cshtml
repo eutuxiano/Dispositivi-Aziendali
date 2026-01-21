@@ -1,23 +1,27 @@
-﻿@model IEnumerable<DeviceManagerMVC.Models.Device>
-
-@{
+﻿@{
     ViewData["Title"] = "Devices";
 }
 
-<h2>Gestione Dispositivi</h2>
+<div class="text-center mt-4 mb-3"> <h2 class="fw-semibold">Gestione Dispositivi</h2>
+    </div>
 
-<form id="searchForm" class="mb-3">
+<form id="searchForm" class="mb-3" onsubmit="return false;">
     <div class="input-group">
         <input type="text" id="searchInput" name="search" class="form-control" placeholder="Cerca in tutti i campi..." />
         <button type="submit" class="btn btn-primary">Cerca</button>
     </div>
 </form>
 
-<div class="mb-3">
-    <a class="btn btn-success" asp-action="Create">Crea nuovo dispositivo</a>
-    <a class="btn btn-secondary" asp-action="ImportCsv">Importa CSV</a>
-    <a class="btn btn-info" asp-action="ExportCsv">Esporta CSV</a>
+<div class="text-center mb-3">
+
+    <div class="d-inline-flex gap-2">
+        <a class="btn btn-success" asp-action="Create">Crea nuovo dispositivo</a>
+        <a class="btn btn-secondary" asp-action="ImportCsv">Importa CSV</a>
+        <a class="btn btn-info" asp-action="ExportCsv">Esporta CSV</a>
+    </div>
+
 </div>
+
 
 
 <div id="results">
@@ -29,21 +33,29 @@
         function loadResults(page = 1) {
             const search = document.getElementById("searchInput").value;
 
-            $.ajax({
-                url: '/Devices/SearchAjax',
-                type: 'GET',
-                data: { search: search, page: page },
-                success: function (data) {
-                    $("#results").html(data);
-                }
-            });
+                    $.ajax({
+            url: '/Devices/SearchAjax',
+            type: 'GET',
+            data: {
+                search: search,
+                page: page
+            },
+            success: function (data) {
+                $("#results").html(data);
+            },
+            error: function (xhr) {
+                console.error("Errore AJAX:", xhr.status, xhr.responseText);
+            }
+        });
+
         }
 
         // Submit del form
-        $("#searchForm").on("submit", function (e) {
+                document.getElementById("searchForm").addEventListener("submit", function (e) {
             e.preventDefault();
             loadResults(1);
         });
+
 
         // Carica la prima pagina all'avvio
         $(document).ready(function () {
