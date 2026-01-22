@@ -2,6 +2,35 @@
     ViewData["Title"] = "Devices";
 }
 
+<div class="container mt-3">
+
+    <!-- Card dashboard con larghezza piena -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body px-4 py-3">
+
+            <div class="row align-items-center">
+                <!-- Filtro a sinistra -->
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <label for="chartFilter" class="form-label fw-semibold mb-1">Filtro:</label>
+                    <select id="chartFilter" class="form-select form-select-sm" style="max-width: 220px;">
+                        <option value="active">Attivi vs Non Attivi</option>
+                        <option value="model">Per Modello</option>
+                    </select>
+                </div>
+
+                <!-- Grafico a destra, molto più grande -->
+                <div class="col-md-8 d-flex justify-content-center">
+                    <canvas id="deviceChart" width="400" height="400" style="max-width: 400px; max-height: 400px;"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+
 <div class="text-center mt-4 mb-3"> <h2 class="fw-semibold">Gestione Dispositivi</h2>
     </div>
 
@@ -30,6 +59,58 @@
 
 @section Scripts {
     <script>
+
+                let chart;
+
+        function loadChart() {
+            const filter = document.getElementById("chartFilter").value;
+
+            $.ajax({
+                url: '/Devices/GetChartData',
+                type: 'GET',
+                data: { filter: filter },
+                success: function (data) {
+                    const ctx = document.getElementById('deviceChart').getContext('2d');
+
+                    if (chart) chart.destroy();
+
+                    chart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                data: data.values,
+                                backgroundColor: [
+                                    '#4e79a7', '#f28e2b', '#e15759', '#76b7b2',
+                                    '#59a14f', '#edc948', '#b07aa1', '#ff9da7'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+            });
+        }
+
+        document.getElementById("chartFilter").addEventListener("change", loadChart);
+        $(document).ready(function () {
+            loadChart();
+        });
+
+
+        // Cambio filtro
+        document.getElementById("chartFilter").addEventListener("change", loadChart);
+
+        // Carica grafico all’avvio
+        $(document).ready(function () {
+            loadChart();
+        });
+
+
+
         function loadResults(page = 1) {
             const search = document.getElementById("searchInput").value;
 

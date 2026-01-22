@@ -91,6 +91,40 @@ namespace DeviceManagerMVC.Controllers
         }
 
         [HttpGet]
+        public IActionResult GetChartData(string filter)
+        {
+            var devices = _context.Devices.ToList();
+
+            if (filter == "active")
+            {
+                var active = devices.Count(d => d.IsActive);
+                var inactive = devices.Count(d => !d.IsActive);
+
+                return Json(new
+                {
+                    labels = new[] { "Attivi", "Non Attivi" },
+                    values = new[] { active, inactive }
+                });
+            }
+
+
+            if (filter == "model")
+            {
+                var grouped = devices
+                    .GroupBy(d => d.Model)
+                    .Select(g => new { label = g.Key, count = g.Count() })
+                    .ToList();
+
+                return Json(new
+                {
+                    labels = grouped.Select(g => g.label),
+                    values = grouped.Select(g => g.count)
+                });
+            }
+
+            return Json(new { labels = new string[] { }, values = new int[] { } });
+        }
+
         public IActionResult ImportCsv()
         {
             return View();
