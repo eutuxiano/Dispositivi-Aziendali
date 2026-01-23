@@ -31,8 +31,8 @@ body {
 }
 
 .btn-primary {
-    background-color: #6C8EBF !important;
-    border-color: #6C8EBF !important;
+    background-color: #b3003c !important;
+    border-color: #b3003c !important;
 }
 
 .btn-success {
@@ -41,14 +41,14 @@ body {
 }
 
 .btn-warning {
-    background-color: #E6B566 !important;
-    border-color: #E6B566 !important;
+    background-color: #ededed !important;
+    border-color: #ededed !important;
     color: #000 !important;
 }
 
 .btn-danger {
-    background-color: #D97A7A !important;
-    border-color: #D97A7A !important;
+    background-color: #b3003c !important;
+    border-color: #b3003c !important;
 }
 
 .btn-info {
@@ -77,8 +77,8 @@ body {
 
 /* Pagina attiva */
 .page-item.active .page-link {
-    background-color: #6C8EBF; /* stesso blu tenue dei bottoni */
-    border-color: #6C8EBF;
+    background-color: #b3003c; /* stesso blu tenue dei bottoni */
+    border-color: #b3003c;
     color: #fff;
 }
 

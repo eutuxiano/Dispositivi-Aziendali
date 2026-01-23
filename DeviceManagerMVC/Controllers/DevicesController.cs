@@ -1,13 +1,8 @@
 ﻿using DeviceManagerMVC.Data;
 using DeviceManagerMVC.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DeviceManagerMVC.Controllers
 {
@@ -28,8 +23,6 @@ namespace DeviceManagerMVC.Controllers
 
         public async Task<IActionResult> SearchAjax(string search, int page = 1)
         {
-            Console.WriteLine("SEARCH = [" + search + "]");
-
             const int pageSize = 15;
 
             var query = _context.Devices.AsQueryable();
@@ -42,7 +35,8 @@ namespace DeviceManagerMVC.Controllers
                     d.SerialNumber.ToLower().Contains(search) ||
                     d.Model.ToLower().Contains(search) ||
                     d.AssignedTo.ToLower().Contains(search) ||
-                    d.IsActive.ToString().ToLower().Contains(search)
+                    d.DeviceType.ToLower().Contains(search) ||
+                    d.Team.ToLower().Contains(search)
                 );
             }
 
@@ -65,21 +59,33 @@ namespace DeviceManagerMVC.Controllers
             return PartialView("_DeviceTable", result);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ExportCsv()
+        {
+            var devices = await _context.Devices.ToListAsync();
+
+            var csv = new StringBuilder();
+            csv.AppendLine("SerialNumber;DeviceType;Model;AssignedTo;Team");
+
+            foreach (var d in devices)
+            {
+                csv.AppendLine($"{d.SerialNumber};{d.DeviceType};{d.Model};{d.AssignedTo};{d.Team}");
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+            return File(bytes, "text/csv", "devices_export.csv");
+        }
+
 
         // GET: Devices/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var device = await _context.Devices
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var device = await _context.Devices.FirstOrDefaultAsync(m => m.Id == id);
             if (device == null)
-            {
                 return NotFound();
-            }
 
             return View(device);
         }
@@ -90,53 +96,10 @@ namespace DeviceManagerMVC.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult GetChartData(string filter)
-        {
-            var devices = _context.Devices.ToList();
-
-            if (filter == "active")
-            {
-                var active = devices.Count(d => d.IsActive);
-                var inactive = devices.Count(d => !d.IsActive);
-
-                return Json(new
-                {
-                    labels = new[] { "Attivi", "Non Attivi" },
-                    values = new[] { active, inactive }
-                });
-            }
-
-
-            if (filter == "model")
-            {
-                var grouped = devices
-                    .GroupBy(d => d.Model)
-                    .Select(g => new { label = g.Key, count = g.Count() })
-                    .ToList();
-
-                return Json(new
-                {
-                    labels = grouped.Select(g => g.label),
-                    values = grouped.Select(g => g.count)
-                });
-            }
-
-            return Json(new { labels = new string[] { }, values = new int[] { } });
-        }
-
-        public IActionResult ImportCsv()
-        {
-            return View();
-        }
-
-
         // POST: Devices/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SerialNumber,Model,AssignedTo,PurchaseDate,IsActive")] Device device)
+        public async Task<IActionResult> Create([Bind("Id,SerialNumber,DeviceType,Model,AssignedTo,Team")] Device device)
         {
             if (ModelState.IsValid)
             {
@@ -147,6 +110,44 @@ namespace DeviceManagerMVC.Controllers
             return View(device);
         }
 
+        // GET: Chart Data
+        [HttpGet]
+        public IActionResult GetChartData(string filter)
+        {
+            if (filter == "type")
+            {
+                var data = _context.Devices
+                    .GroupBy(d => d.DeviceType)
+                    .Select(g => new { Label = g.Key, Count = g.Count() })
+                    .ToList();
+
+                return Json(new
+                {
+                    labels = data.Select(d => d.Label),
+                    values = data.Select(d => d.Count)
+                });
+            }
+
+            // Default: per Team
+            var dataTeam = _context.Devices
+                .GroupBy(d => d.Team)
+                .Select(g => new { Label = g.Key, Count = g.Count() })
+                .ToList();
+
+            return Json(new
+            {
+                labels = dataTeam.Select(d => d.Label),
+                values = dataTeam.Select(d => d.Count)
+            });
+        }
+
+        // GET: Import CSV
+        public IActionResult ImportCsv()
+        {
+            return View();
+        }
+
+        // POST: Import CSV
         [HttpPost]
         public async Task<IActionResult> ImportCsv(IFormFile file)
         {
@@ -165,10 +166,8 @@ namespace DeviceManagerMVC.Controllers
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
-
                 lineNumber++;
 
-                // Salta l'header
                 if (lineNumber == 1)
                     continue;
 
@@ -186,37 +185,31 @@ namespace DeviceManagerMVC.Controllers
                     continue;
                 }
 
-                // Estrazione campi
                 string serial = values[0].Trim();
-                string model = values[1].Trim();
-                string assignedTo = values[2].Trim();
-                string purchaseDateString = values[3].Trim();
-                string isActiveString = values[4].Trim();
+                string deviceType = values[1].Trim();
+                string model = values[2].Trim();
+                string assignedTo = values[3].Trim();
+                string team = values[4].Trim();
 
-                // Validazione
                 if (string.IsNullOrEmpty(serial))
                     errors.Add($"Riga {lineNumber}: SerialNumber mancante.");
+
+                if (string.IsNullOrEmpty(deviceType))
+                    errors.Add($"Riga {lineNumber}: DeviceType mancante.");
 
                 if (string.IsNullOrEmpty(model))
                     errors.Add($"Riga {lineNumber}: Model mancante.");
 
-                if (!DateTime.TryParse(purchaseDateString, out DateTime purchaseDate))
-                    errors.Add($"Riga {lineNumber}: PurchaseDate non valida ({purchaseDateString}).");
-
-                if (!bool.TryParse(isActiveString, out bool isActive))
-                    errors.Add($"Riga {lineNumber}: IsActive deve essere true/false ({isActiveString}).");
-
-                // Se ci sono errori per questa riga → salta inserimento
                 if (errors.Any(e => e.Contains($"Riga {lineNumber}")))
                     continue;
 
                 var device = new Device
                 {
                     SerialNumber = serial,
+                    DeviceType = deviceType,
                     Model = model,
                     AssignedTo = assignedTo,
-                    PurchaseDate = purchaseDate,
-                    IsActive = isActive
+                    Team = team
                 };
 
                 _context.Devices.Add(device);
@@ -233,52 +226,26 @@ namespace DeviceManagerMVC.Controllers
             return RedirectToAction("Index");
         }
 
-
         // GET: Devices/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var device = await _context.Devices.FindAsync(id);
             if (device == null)
-            {
                 return NotFound();
-            }
+
             return View(device);
         }
 
-        public async Task<IActionResult> ExportCsv()
-        {
-            var devices = await _context.Devices.ToListAsync();
-
-            var csv = new StringBuilder();
-            csv.AppendLine("Id;SerialNumber;Model;AssignedTo;PurchaseDate;IsActive");
-
-            foreach (var d in devices)
-            {
-                csv.AppendLine($"{d.Id};{d.SerialNumber};{d.Model};{d.AssignedTo};{d.PurchaseDate:yyyy-MM-dd};{d.IsActive}");
-            }
-
-            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-            return File(bytes, "text/csv", "devices_export.csv");
-        }
-
-
-
         // POST: Devices/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SerialNumber,Model,AssignedTo,PurchaseDate,IsActive")] Device device)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SerialNumber,DeviceType,Model,AssignedTo,Team")] Device device)
         {
             if (id != device.Id)
-            {
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
@@ -290,13 +257,9 @@ namespace DeviceManagerMVC.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!DeviceExists(device.Id))
-                    {
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -307,16 +270,11 @@ namespace DeviceManagerMVC.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var device = await _context.Devices
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var device = await _context.Devices.FirstOrDefaultAsync(m => m.Id == id);
             if (device == null)
-            {
                 return NotFound();
-            }
 
             return View(device);
         }
@@ -328,9 +286,7 @@ namespace DeviceManagerMVC.Controllers
         {
             var device = await _context.Devices.FindAsync(id);
             if (device != null)
-            {
                 _context.Devices.Remove(device);
-            }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -342,3 +298,4 @@ namespace DeviceManagerMVC.Controllers
         }
     }
 }
+

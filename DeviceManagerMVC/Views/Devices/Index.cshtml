@@ -10,18 +10,19 @@
 
             <div class="row align-items-center">
                 <!-- Filtro a sinistra -->
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <label for="chartFilter" class="form-label fw-semibold mb-1">Filtro:</label>
-                    <select id="chartFilter" class="form-select form-select-sm" style="max-width: 220px;">
-                        <option value="active">Attivi vs Non Attivi</option>
-                        <option value="model">Per Modello</option>
-                    </select>
-                </div>
+                <select id="chartFilter" class="form-select form-select-sm">
+                    <option value="type">Per Tipo</option>
+                    <option value="team">Per Team</option>
+                </select>
+
 
                 <!-- Grafico a destra, molto più grande -->
-                <div class="col-md-8 d-flex justify-content-center">
-                    <canvas id="deviceChart" width="400" height="400" style="max-width: 400px; max-height: 400px;"></canvas>
+                <div class="row justify-content-center">
+                    <div class="col-md-8 d-flex justify-content-center">
+                        <canvas id="deviceChart" width="400" height="400" style="max-width: 400px; max-height: 400px;"></canvas>
+                    </div>
                 </div>
+
             </div>
 
         </div>

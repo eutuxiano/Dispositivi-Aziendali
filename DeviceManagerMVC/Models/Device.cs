@@ -6,7 +6,9 @@
         public string SerialNumber { get; set; }
         public string Model { get; set; }
         public string AssignedTo { get; set; }
-        public DateTime PurchaseDate { get; set; }
-        public bool IsActive { get; set; }
+        public string DeviceType { get; set; } // PC, Phone, Tablet, etc.
+        public string Team { get; set; } // IT, HR, Finance, etc.
+
+
     }
 }

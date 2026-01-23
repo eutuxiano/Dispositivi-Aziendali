@@ -13,26 +13,17 @@
             <dt class="col-sm-4 text-nowrap">Serial Number</dt>
             <dd class="col-sm-8">@Model.SerialNumber</dd>
 
+            <dt class="col-sm-4 text-nowrap">Device Type</dt>
+            <dd class="col-sm-8">@Model.DeviceType</dd>
+
             <dt class="col-sm-4 text-nowrap">Model</dt>
             <dd class="col-sm-8">@Model.Model</dd>
 
             <dt class="col-sm-4 text-nowrap">Assigned To</dt>
             <dd class="col-sm-8">@Model.AssignedTo</dd>
 
-            <dt class="col-sm-4 text-nowrap">Purchase Date</dt>
-            <dd class="col-sm-8">@Model.PurchaseDate.ToShortDateString()</dd>
-
-            <dt class="col-sm-4 text-nowrap">Is Active</dt>
-            <dd class="col-sm-8">
-                @if (Model.IsActive)
-                {
-                    <span class="badge bg-success">Attivo</span>
-                }
-                else
-                {
-                    <span class="badge bg-secondary">Non attivo</span>
-                }
-            </dd>
+            <dt class="col-sm-4 text-nowrap">Team</dt>
+            <dd class="col-sm-8">@Model.Team</dd>
         </dl>
 
         <form asp-action="Delete">

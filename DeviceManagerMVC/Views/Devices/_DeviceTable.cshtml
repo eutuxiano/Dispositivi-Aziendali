@@ -5,10 +5,10 @@
     <thead>
         <tr>
             <th>Serial</th>
+            <th>Tipo</th>
             <th>Model</th>
             <th>Assigned To</th>
-            <th>Purchase Date</th>
-            <th>Active</th>
+            <th>Team</th>
             <th>Azioni</th>
         </tr>
     </thead>
@@ -17,10 +17,11 @@
         {
             <tr>
                 <td>@d.SerialNumber</td>
+                <td>@d.DeviceType</td>
                 <td>@d.Model</td>
                 <td>@d.AssignedTo</td>
-                <td>@d.PurchaseDate.ToString("yyyy-MM-dd")</td>
-                <td>@d.IsActive</td>
+                <td>@d.Team</td>
+                
                 <td>
                     <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@d.Id">Dettagli</a>
                     <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@d.Id">Modifica</a>
